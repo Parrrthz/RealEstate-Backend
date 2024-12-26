@@ -17,3 +17,31 @@ export const createUser = asyncHandler(async(req,res)=>{
         });
     }else res.status(201).send({message:"User Already registered"});
 });
+
+
+// to took a a visit to resd 
+export const bookVisit = asyncHandler(async(req,res)=>{
+    const { email , date } = req.body;
+    const {id} = req.params
+
+    try{
+        const alreadyBooked = await prisma.findUnique({
+            where: {email},
+            select: {bookedVisits: true},
+        })
+        if(alreadyBooked.bookVisits.some((visit)=> visit.id === id)){
+            res.status(400).json({ message : "This residecy already booked by you"});
+        }else{
+            await prisma.user.update({
+                where: {email:email},
+                data: {
+                    bookedVisits: {push : {id : id}},
+                },
+            });
+            res.send("You Visit is Booked Successfully")
+        }
+    }
+    catch(err){
+        throw new Error(err.message)
+    }
+})

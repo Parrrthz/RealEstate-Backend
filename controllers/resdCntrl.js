@@ -1,72 +1,109 @@
-import asyncHandler from "express-async-handler";
-import { prisma } from "../config/prismaConfig.js";
-
-export const createResidency = asyncHandler(async (req, res) => {
-//    console.log("endpoint created")
-   const {title,description,price,address,country,city,facilities,image,userEmail } = req.body.data
-
-   console.log(req.body.data);
-   try {
-    const residency = await prisma.residency.create({
-        data:{
-            title,
-            description,
-            price,
-            address,
-            country,
-            city,
-            facilities,
-            image,
-            owner: {connect:{email:userEmail}},
-        },
-    });
-
-    res.send({message: "Residency created successfully",residency});
-   } catch (err) {
-    if(err.code === "p2002"){
-        throw new Error("A Residency with address already there");
-    }
-    throw new Error(err.message);
-   }
-})
-
-
-
-
 // import asyncHandler from "express-async-handler";
 // import { prisma } from "../config/prismaConfig.js";
 
 // export const createResidency = asyncHandler(async (req, res) => {
-//     const { title, description, price, address, country, city, facilities, image, userEmail } = req.body.data;
+// //    console.log("endpoint created")
+//    const {title,description,price,address,country,city,facilities,image,userEmail } = req.body.data
 
-//     try {
-//         // Validate user existence
-//         const user = await prisma.user.findUnique({
-//             where: { email: userEmail },
-//         });
+//    console.log(req.body.data);
+//    try {
+//     const residency = await prisma.residency.create({
+//         data:{
+//             title,
+//             description,
+//             price,
+//             address,
+//             country,
+//             city,
+//             facilities,
+//             image,
+//             owner: {connect:{email:userEmail}},
+//         },
+//     });
 
-//         if (!user) {
-//             return res.status(400).json({ message: "User with the provided email does not exist." });
-//         }
-
-//         // Create residency
-//         const residency = await prisma.residency.create({
-//             data: {
-//                 title,
-//                 description,
-//                 price,
-//                 address,
-//                 country,
-//                 city,
-//                 facilities,
-//                 image,
-//                 owner: { connect: { email: userEmail } },
-//             },
-//         });
-
-//         res.status(201).json({ message: "Residency created successfully", residency });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: "Internal server error. Please try again later." });
+//     res.send({message: "Residency created successfully",residency});
+//    } catch (err) {
+//     if(err.code === "p2002"){
+//         throw new Error("A Residency with address already there");
 //     }
-// });
+//     throw new Error(err.message);
+//    }
+// })
+
+import asyncHandler from "express-async-handler";
+import { prisma } from "../config/prismaConfig.js";
+
+export const createResidency = asyncHandler(async (req, res) => {
+  const {
+    title,
+    description,
+    price,
+    address,
+    country,
+    city,
+    facilities,
+    image,
+    userEmail,
+  } = req.body.data;
+
+  try {
+    // Validate user existence
+    const user = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "User with the provided email does not exist." });
+    }
+
+    // Create residency
+    const residency = await prisma.residency.create({
+      data: {
+        title,
+        description,
+        price,
+        address,
+        country,
+        city,
+        facilities,
+        image,
+        owner: { connect: { email: userEmail } },
+      },
+    });
+
+    res
+      .status(201)
+      .json({ message: "Residency created successfully", residency });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Internal server error. Please try again later." });
+  }
+});
+
+//get all residence
+
+export const getAllResidencies = asyncHandler(async (req, res) => {
+  const residencies = await prisma.residency.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  res.send(residencies);
+});
+
+// get a residecy by id
+export const getResidency = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const residecy = await prisma.residency.findUnique({
+      where: { id },
+    });
+    res.send(residecy);
+  } catch (err) {
+    throw new Error(err.message);
+  }
+});
