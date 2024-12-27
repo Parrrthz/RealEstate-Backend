@@ -23,12 +23,94 @@ export const createResidency = asyncHandler(async (req, res) => {
 
     res.send({message: "Residency created successfully",residency});
    } catch (err) {
-    if(err.code === "p2002"){
+    if(err.code === "P2002"){
         throw new Error("A Residency with address already there");
     }
     throw new Error(err.message);
    }
-})
+});
+
+
+
+// getAllResidencies
+
+// export const getAllResidencies = asyncHandler(async (req, res) => {
+//     const residencies = await prisma.residency.findMany({
+//         orderBy:{
+//             createdAt: "desc",
+//         },
+//     });
+//     res.send(residencies);
+// });
+
+//or
+
+export const getAllResidencies = asyncHandler(async (req, res) => {
+    try {
+        const residencies = await prisma.residency.findMany({
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+        res.status(200).json(residencies);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch residencies", error: error.message });
+    }
+});
+
+
+
+//get a residency by id
+
+// export const getResidency = asyncHandler(async (req, res) => {
+//        const {id} = req.params;
+//        try {
+//         const  residency = await prisma.residency.findUnique({
+//             where:{ id },
+//         });
+
+//         res.send(residency);
+//        } catch (err) {
+//         throw new Error(err.message);
+//        }
+// });
+
+//or 
+
+export const getResidency = asyncHandler(async (req, res) => {
+    console.log("get id")
+    const { id } = req.params;
+
+    try {
+        const residency = await prisma.residency.findUnique({
+            where: { id: id }, // Ensures `id` is parsed as an integer
+        });
+
+        if (!residency) {
+            return res.status(404).json({ message: "Residency not found" });
+        }
+
+        res.status(200).json(residency);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch residency", error: error.message });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ======================CGPT==================================
+
 
 
 
@@ -37,10 +119,13 @@ export const createResidency = asyncHandler(async (req, res) => {
 // import { prisma } from "../config/prismaConfig.js";
 
 // export const createResidency = asyncHandler(async (req, res) => {
+
+
+//     console.log("create Residency")   // print in terminal create residency
 //     const { title, description, price, address, country, city, facilities, image, userEmail } = req.body.data;
 
 //     try {
-//         // Validate user existence
+//         // Check if user exists
 //         const user = await prisma.user.findUnique({
 //             where: { email: userEmail },
 //         });
