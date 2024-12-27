@@ -22,7 +22,7 @@ export const createUser = asyncHandler(async(req,res)=>{
 
 
 
-//to book a visit to residency
+//======================To book a visit to residency=========================================================
 
 export const bookVisit = asyncHandler(async(req,res)=>{
     // console.log("booking a visit to residency")
@@ -42,11 +42,11 @@ export const bookVisit = asyncHandler(async(req,res)=>{
             await prisma.user.update({
                 where: {email:email},
                 data: {
-                    bookedVisits: { push: {id:id}},
+                    bookedVisits: { push: {id, date}}, // Ensure correct field name and format
              },
             });
+            res.send("Your Visit is booked successfully");
         }
-        res.send("Your Visit is booked successfully");
     } catch (err) {
         throw new Error(err.message);
     }
@@ -55,32 +55,76 @@ export const bookVisit = asyncHandler(async(req,res)=>{
 // or
 
 // export const bookVisit = asyncHandler(async (req, res) => {
-//     const { email, date } = req.body; // Extract email and date from the request body
-//     const { id } = req.params; // Extract residency ID from the request parameters
+//     const { email, date } = req.body;
+//     const { id } = req.params;
 
 //     try {
-//         // Check if the user has already booked a visit for the given residency
-//         const user = await prisma.user.findUnique({
+//         // Check if the user already booked the residency
+//         const alreadyBooked = await prisma.user.findUnique({
 //             where: { email },
-//             select: { bookedVisit: true },
+//             select: { bookedVisit: true }, // Use the correct field name
 //         });
 
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found" });
+//         if (alreadyBooked.bookedVisit.some((visit) => visit.id === id)) {
+//             return res.status(400).json({ message: "This residency is already booked by you." });
 //         }
 
-//         if (user.bookedVisit.some((visit) => visit.id === id)) {
-//             return res.status(400).json({ message: "This residency is already booked by you" });
-//         }
-
-//         // Update the user's booked visits
+//         // Update user's bookedVisit field
 //         await prisma.user.update({
 //             where: { email },
-//             data: { bookedVisits: { push: { id, date } } }, // Include date in the booking
+//             data: {
+//                 bookedVisit: { push: { id, date } }, 
+//             },
 //         });
 
-//         res.status(200).json({ message: "Your visit is booked successfully" });
-//     } catch (error) {
-//         res.status(500).json({ message: "Failed to book visit", error: error.message });
+//         res.status(200).json({ message: "Your visit has been booked successfully." });
+//     } catch (err) {
+//         res.status(500).json({ message: "Failed to book visit", error: err.message });
 //     }
 // });
+
+
+// ===================================================================================================================
+
+
+// to get all booking
+
+
+// export const allBookings = asyncHandler(async(req,res)=>{
+//     const {email} = req.params
+
+//     try {
+//         const bookings = await prisma.user.findUnique({
+//             where: { email },
+//             select: { bookedVisit: true }
+//         });
+//         res.status(200).send(bookings)
+//     } catch (err) {
+//         throw new Error(err.message)
+//     }
+// });
+
+// or 
+
+export const allBookings = asyncHandler(async (req, res) => {
+    const { email } = req.params;
+
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+        const bookings = await prisma.user.findUnique({
+            where: { email },
+            select: { bookedVisit: true },
+        });
+
+        if (!bookings) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(bookings);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch bookings", error: err.message });
+    }
+});
