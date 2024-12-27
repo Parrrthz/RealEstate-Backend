@@ -4,10 +4,7 @@
 
 // router.post("/create",createResidency)
 
-
 // export {router as residencyRoute}
-
-
 
 import express from "express";
 import { createResidency, getAllResidencies, getResidency } from "../controllers/resdCntrl.js";
